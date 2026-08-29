@@ -76,3 +76,10 @@ class Company(Base):
         "Workspace",
         back_populates="company",
     )
+
+    financial_profile = relationship(
+        "CompanyFinancialProfile",
+        back_populates="company",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )

@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
 from app.models import Company, User, Workspace
+from app.models.company_financial_profile import (
+    CompanyFinancialProfile,
+)
 from app.schemas.user import UserCreate
 from app.schemas.workspace import WorkspaceCreate
 
@@ -15,7 +18,11 @@ def register_user(
     db: Session,
     user_data: UserCreate,
     workspace_data: WorkspaceCreate,
-) -> tuple[User, Workspace, Company | None]:
+) -> tuple[
+    User,
+    Workspace,
+    Company | None,
+]:
 
     existing_user = db.scalar(
         select(User).where(User.email == user_data.email)
@@ -24,6 +31,24 @@ def register_user(
     if existing_user is not None:
         raise RegistrationError(
             "A user with this email already exists."
+        )
+
+    if (
+        workspace_data.type == "BUSINESS"
+        and workspace_data.company is None
+    ):
+        raise RegistrationError(
+            "Company information is required "
+            "for BUSINESS workspace."
+        )
+
+    if (
+        workspace_data.type == "PERSONAL"
+        and workspace_data.company is not None
+    ):
+        raise RegistrationError(
+            "Company information is not allowed "
+            "for PERSONAL workspace."
         )
 
     user = User(
@@ -49,15 +74,58 @@ def register_user(
     company = None
 
     if workspace_data.type == "BUSINESS":
+        company_data = workspace_data.company
+
         company = Company(
             workspace_id=workspace.id,
-            legal_name=workspace_data.name,
-            display_name=workspace_data.name,
-            country=workspace_data.country or "Unknown",
-            base_currency=workspace_data.base_currency.upper(),
+            legal_name=company_data.legal_name,
+            display_name=(
+                company_data.display_name
+                or workspace_data.name
+            ),
+            country=(
+                workspace_data.country
+                or "Unknown"
+            ),
+            industry=company_data.industry,
+            business_model=company_data.business_model,
+            website=company_data.website,
+            base_currency=(
+                workspace_data.base_currency.upper()
+            ),
+            risk_profile=company_data.risk_profile,
         )
 
         db.add(company)
+        db.flush()
+
+        financial_profile = CompanyFinancialProfile(
+            company_id=company.id,
+            annual_revenue=company_data.annual_revenue,
+            monthly_revenue=company_data.monthly_revenue,
+            monthly_expenses=company_data.monthly_expenses,
+            monthly_payroll=company_data.monthly_payroll,
+            monthly_marketing=company_data.monthly_marketing,
+            monthly_software=company_data.monthly_software,
+            cash_balance=company_data.cash_balance,
+            accounts_receivable=(
+                company_data.accounts_receivable
+            ),
+            accounts_payable=(
+                company_data.accounts_payable
+            ),
+            total_debt=company_data.total_debt,
+            monthly_debt_payment=(
+                company_data.monthly_debt_payment
+            ),
+            employee_count=company_data.employee_count,
+            fiscal_year_start=(
+                company_data.fiscal_year_start
+            ),
+            data_source="USER_PROVIDED",
+        )
+
+        db.add(financial_profile)
 
     db.commit()
 

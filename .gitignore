@@ -1,14 +1,15 @@
 # Python
 __pycache__/
 *.py[cod]
-*.pyo
+*.so
 
 # Virtual environments
 .venv/
 venv/
 env/
+ENV/
 
-# Environment / secrets
+# Environment variables / secrets
 .env
 .env.*
 !.env.example
@@ -20,15 +21,39 @@ env/
 .vscode/
 .idea/
 
-# Testing / coverage
+# Test / coverage
 .pytest_cache/
 .coverage
 htmlcov/
-
-# Build
-dist/
-build/
-*.egg-info/
+.mypy_cache/
+.ruff_cache/
 
 # Logs
 *.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Backups
+*.backup
+*.bak
+
+# Node / frontend
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+coverage/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# OS / tooling
+*.pid

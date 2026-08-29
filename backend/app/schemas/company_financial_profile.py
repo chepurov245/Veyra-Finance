@@ -1,43 +1,9 @@
 from decimal import Decimal
-from typing import Literal
 
 from pydantic import BaseModel, Field
 
 
-WorkspaceType = Literal["PERSONAL", "BUSINESS"]
-
-
-class CompanyRegistrationData(BaseModel):
-    legal_name: str = Field(
-        min_length=1,
-        max_length=300,
-    )
-
-    display_name: str | None = Field(
-        default=None,
-        max_length=200,
-    )
-
-    industry: str | None = Field(
-        default=None,
-        max_length=200,
-    )
-
-    business_model: str | None = Field(
-        default=None,
-        max_length=200,
-    )
-
-    website: str | None = Field(
-        default=None,
-        max_length=500,
-    )
-
-    risk_profile: str | None = Field(
-        default=None,
-        max_length=50,
-    )
-
+class CompanyFinancialProfileCreate(BaseModel):
     annual_revenue: Decimal | None = Field(
         default=None,
         ge=0,
@@ -104,36 +70,12 @@ class CompanyRegistrationData(BaseModel):
     )
 
 
-class WorkspaceCreate(BaseModel):
-    type: WorkspaceType
-
-    name: str = Field(
-        min_length=1,
-        max_length=200,
-    )
-
-    base_currency: str = Field(
-        default="RUB",
-        min_length=3,
-        max_length=10,
-    )
-
-    country: str | None = Field(
-        default=None,
-        max_length=100,
-    )
-
-    company: CompanyRegistrationData | None = None
-
-
-class WorkspaceResponse(BaseModel):
+class CompanyFinancialProfileResponse(
+    CompanyFinancialProfileCreate
+):
     id: int
-    owner_id: int
-    type: WorkspaceType
-    name: str
-    base_currency: str
-    country: str | None
-    status: str
+    company_id: int
+    data_source: str
 
     model_config = {
         "from_attributes": True,
